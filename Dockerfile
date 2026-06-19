@@ -1,8 +1,5 @@
 FROM rocker/r-ver:4.6.0
 
-# Buildx füllt TARGETARCH automatisch (amd64 oder arm64).
-ARG TARGETARCH
-
 # System-Libs für die R-Pakete:
 #   xml2          -> libxml2-dev
 #   httr2/curl    -> libcurl4-openssl-dev, libssl-dev, curl (CLI)
@@ -28,14 +25,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Auf amd64 nutzen wir den Posit Package Manager (Linux-Binaries → schnell).
-# Auf arm64 (z.B. Raspberry Pi) gibt's bei PPM keine Binaries, also Cloud-CRAN
-# (Source-Build, langsamer aber zuverlässig).
-RUN if [ "$TARGETARCH" = "amd64" ]; then \
-      echo 'options(repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/jammy/latest"))' > /usr/local/lib/R/etc/Rprofile.site; \
-    else \
-      echo 'options(repos = c(CRAN = "https://cloud.r-project.org"))' > /usr/local/lib/R/etc/Rprofile.site; \
-    fi
+# Wir nutzen CRAN-Cloud als Repo (statt PPM-latest), weil:
+# - PPM-`latest` ist ein rolling Tag ohne Archive. Wenn die Lockfile xfun 0.58
+#   pinnt, PPM aber inzwischen nur noch 0.59 anbietet, scheitert renv::restore.
+# - CRAN-Cloud hat alle archivierten Versionen → reproduzierbare Builds.
+# Trade-off: Source-Builds sind langsamer, aber zuverlässig auf amd64 + arm64.
+ENV RENV_CONFIG_REPOS_OVERRIDE=https://cloud.r-project.org
+RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org"))' > /usr/local/lib/R/etc/Rprofile.site
 
 # renv installieren, danach Lockfile-Dateien einzeln kopieren,
 # damit Docker den Restore-Step cached, solange sich renv.lock nicht ändert.
