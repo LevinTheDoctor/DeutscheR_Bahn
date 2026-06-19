@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    image: deutscher-bahn:latest
+    container_name: deutscher-bahn
+    ports:
+      - "3838:3838"
+    environment:
+      DB_CLIENT_ID: ${DB_CLIENT_ID}
+      DB_CLIENT_SECRET: ${DB_CLIENT_SECRET}
+    restart: unless-stopped

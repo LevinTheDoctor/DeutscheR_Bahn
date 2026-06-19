@@ -5,3 +5,14 @@
 .Renviron
 ._*
 .DS_Store
+
+# renv: Lockfile und Activate-Script gehören committed,
+# Library-Verzeichnisse nicht.
+renv/library/
+renv/local/
+renv/cellar/
+renv/python/
+renv/staging/
+
+# Docker-Compose-Env-File mit echten Credentials
+.env

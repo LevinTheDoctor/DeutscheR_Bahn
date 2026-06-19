@@ -1,0 +1,17 @@
+.git
+.gitignore
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.Renviron
+._*
+.DS_Store
+*.Rproj
+renv/library/
+renv/local/
+renv/cellar/
+renv/python/
+renv/staging/
+schemas.md
+README.md
