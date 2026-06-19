@@ -3,12 +3,19 @@ FROM rocker/r-ver:4.6.0
 # Buildx füllt TARGETARCH automatisch (amd64 oder arm64).
 ARG TARGETARCH
 
-# System-Libs für xml2 (libxml2), httr2/curl (libcurl, libssl) und
-# Schrift-Rendering (für spätere ggplot2-Plots).
+# System-Libs für die R-Pakete:
+#   xml2          -> libxml2-dev
+#   httr2/curl    -> libcurl4-openssl-dev, libssl-dev, curl (CLI)
+#   fs            -> libuv1-dev (PPM-Binary linkt dynamisch dagegen)
+#   git2r/gert    -> libgit2-dev (häufig von renv genutzt)
+#   ggplot2-Plots -> libfontconfig, libfreetype, libpng, libtiff, libjpeg
 RUN apt-get update && apt-get install -y --no-install-recommends \
+      curl \
       libxml2-dev \
       libcurl4-openssl-dev \
       libssl-dev \
+      libuv1-dev \
+      libgit2-dev \
       libfontconfig1-dev \
       libfreetype6-dev \
       libpng-dev \
