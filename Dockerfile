@@ -6,11 +6,14 @@ ARG TARGETARCH
 # System-Libs für die R-Pakete:
 #   xml2          -> libxml2-dev
 #   httr2/curl    -> libcurl4-openssl-dev, libssl-dev, curl (CLI)
-#   fs            -> libuv1-dev (PPM-Binary linkt dynamisch dagegen)
+#   fs            -> libuv1-dev (PPM-Binary linkt dynamisch dagegen), cmake
 #   git2r/gert    -> libgit2-dev (häufig von renv genutzt)
+#   knitr/rmarkdown -> pandoc
 #   ggplot2-Plots -> libfontconfig, libfreetype, libpng, libtiff, libjpeg
 RUN apt-get update && apt-get install -y --no-install-recommends \
       curl \
+      cmake \
+      pandoc \
       libxml2-dev \
       libcurl4-openssl-dev \
       libssl-dev \
@@ -43,7 +46,15 @@ COPY .Rprofile .Rprofile
 COPY renv/ renv/
 
 # Pakete aus dem Lockfile installieren.
-RUN R -e "renv::restore(prompt = FALSE)"
+# Retry-Loop: PPM-Downloads brechen gelegentlich ab (Truncated TAR / EOF).
+# Bis zu 3 Versuche, danach gibt der letzte Exit-Code auf.
+RUN for i in 1 2 3; do \
+      echo "renv::restore() attempt $i/3"; \
+      R -e "options(timeout = 600); renv::restore(prompt = FALSE)" && exit 0; \
+      echo "Attempt $i failed, sleeping 15s..."; \
+      sleep 15; \
+    done; \
+    exit 1
 
 # Erst jetzt den App-Code kopieren — Code-Änderungen invalidieren
 # nicht den Paket-Cache.
